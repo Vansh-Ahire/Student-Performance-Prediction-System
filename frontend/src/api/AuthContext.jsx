@@ -25,18 +25,22 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (username, password) => {
     const response = await api.post('/login', { username, password });
+    if (response.data.access_token) {
+      localStorage.setItem('access_token', response.data.access_token);
+      localStorage.setItem('refresh_token', response.data.refresh_token);
+    }
     setUser(response.data.user);
     return response.data;
   };
 
   const logout = async () => {
-    // We can call /logout on backend if needed, or just clear local state
-    // For Flask-Login, we should call /logout to clear session cookie
     try {
-      await api.get('/logout'); // Assuming /logout exists and works with sessions
+      await api.get('/logout');
     } catch (err) {
       console.error('Logout error:', err);
     }
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
     setUser(null);
     window.location.href = '/login';
   };

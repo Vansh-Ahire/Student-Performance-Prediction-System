@@ -1,0 +1,16 @@
+{
+  "name": "Student Diary",
+  "short_name": "StudentDiary",
+  "description": "AI-powered academic performance tracker for students",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f0f14",
+  "theme_color": "#ea580c",
+  "icons": [
+    {
+      "src": "/vite.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

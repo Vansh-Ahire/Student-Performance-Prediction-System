@@ -81,16 +81,12 @@ export default function StudyTimer() {
   const fmt = (n) => n.toString().padStart(2, '0');
 
   const stats = [
-    { label: 'Completed Today', value: '8 Sessions', change: '+12%', icon: CheckCircle2, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
-    { label: 'Focus Time', value: '3.2 Hours', change: 'Target: 4h', icon: Clock, color: 'text-orange-400', bg: 'bg-orange-500/10' },
-    { label: 'Current Streak', value: '5 Days', icon: Zap, color: 'text-orange-400', bg: 'bg-orange-500/10' },
+    { label: 'Completed Today', value: '0 Sessions', change: '', icon: CheckCircle2, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
+    { label: 'Focus Time', value: '0 Hours', change: '', icon: Clock, color: 'text-orange-400', bg: 'bg-orange-500/10' },
+    { label: 'Current Streak', value: '0 Days', icon: Zap, color: 'text-orange-400', bg: 'bg-orange-500/10' },
   ];
 
-  const recentSessions = [
-    { id: 1, title: 'UI Design Implementation', time: 'Today, 2:15 PM', duration: '25:00', status: 'SUCCESS', icon: Layout, color: 'text-orange-400' },
-    { id: 2, title: 'History Research', time: 'Today, 1:30 PM', duration: '25:00', status: 'SUCCESS', icon: BookOpen, color: 'text-orange-400' },
-    { id: 3, title: 'Mathematics Exercises', time: 'Today, 11:00 AM', duration: '12:45', status: 'INTERRUPTED', icon: Calculator, color: 'text-orange-400' },
-  ];
+  const recentSessions = [];
 
   return (
     <div className="space-y-8 animate-slide-up pb-10">
@@ -245,7 +241,7 @@ export default function StudyTimer() {
          </div>
 
          <div className="space-y-4">
-            {recentSessions.map((session, i) => (
+            {recentSessions.length > 0 ? recentSessions.map((session, i) => (
                <div key={i} className={`flex items-center justify-between p-4 rounded-2xl transition-all border border-transparent hover:bg-white/[0.02] hover:border-white/5 group ${i !== recentSessions.length - 1 ? 'border-b border-white/5' : ''}`}>
                   <div className="flex items-center gap-4">
                      <div className="w-12 h-12 rounded-2xl bg-dark-900 border border-dark-700 flex items-center justify-center text-orange-400 group-hover:scale-110 transition-transform">
@@ -263,7 +259,11 @@ export default function StudyTimer() {
                      </span>
                   </div>
                </div>
-            ))}
+            )) : (
+              <div className="text-center py-10">
+                <p className="text-dim text-sm">No recent sessions found. Start a timer to begin your deep work!</p>
+              </div>
+            )}
          </div>
       </div>
     </div>

@@ -25,3 +25,7 @@ dist/
 
 # Logs
 *.log
+
+# Project Data Directories (too large / deep paths)
+Data/
+QB/

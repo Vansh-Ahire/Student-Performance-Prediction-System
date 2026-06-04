@@ -1,4 +1,8 @@
-from mongoengine import Document, StringField, IntField, ReferenceField, DateTimeField, BooleanField, CASCADE
+"""
+Database Models for Student Performance System
+Defines the schema for MongoDB using MongoEngine.
+"""
+from mongoengine import Document, StringField, IntField, ReferenceField, DateTimeField, BooleanField, ListField, DictField, CASCADE
 from flask_login import UserMixin
 from datetime import datetime, date
 
@@ -27,6 +31,11 @@ class User(Document, UserMixin):
     university = StringField(max_length=200)
     semester = StringField(max_length=50)
     cgpa_target = StringField(max_length=10)
+    total_semesters = IntField(default=8)
+    semesters_completed = IntField(default=0)
+    sem_gpas = ListField(StringField())
+    role = StringField(max_length=20, default='student')
+    show_on_leaderboard = BooleanField(default=False)
     
     def get_id(self):
         return str(self.id)
@@ -74,3 +83,68 @@ class Notification(Document):
     type = StringField(max_length=50, default='info') # danger, warning, success, info
     read = BooleanField(default=False)
     date_added = DateTimeField(default=datetime.utcnow)
+
+class SubjectiveAssessment(Document):
+    student = ReferenceField(User, required=True)
+    branch = ReferenceField(Branch, required=True)
+    subject = StringField(max_length=100, required=True)
+    unit = IntField(required=True)
+    questions = ListField(DictField()) # [{id: str, text: str, marks: int, model_solution: str}]
+    answers = ListField(DictField()) # [{question_id: str, student_answer: str, score: int, feedback: str}]
+    total_score = IntField()
+    max_score = IntField()
+    status = StringField(max_length=20, default='pending') # pending, completed
+    date_created = DateTimeField(default=datetime.utcnow)
+    date_completed = DateTimeField()
+    
+class SubjectRecommendation(Document):
+    subject_name = StringField(max_length=100, required=True)
+    unit = IntField()
+    topic = StringField(max_length=200)
+    problem_name = StringField(max_length=200, required=True)
+    problem_url = StringField(max_length=500, required=True)
+    platform = StringField(max_length=50) # LeetCode, etc.
+    difficulty = StringField(max_length=20) # Easy, Medium, Hard
+
+class AssignedTrack(Document):
+    student = ReferenceField(User, required=True)
+    name = StringField(max_length=200, required=True)
+    platform = StringField(max_length=50, required=True)
+    url = StringField(max_length=500, required=True)
+    progress = IntField(default=0)
+
+class StudyPlan(Document):
+    student = ReferenceField(User, required=True)
+    date = DateTimeField(required=True)
+    blocks = ListField(DictField())
+    ai_generated = BooleanField(default=True)
+    created_at = DateTimeField(default=datetime.utcnow)
+
+class Note(Document):
+    student = ReferenceField(User, required=True)
+    title = StringField(max_length=200, required=True)
+    subject = StringField(max_length=100)
+    unit = IntField()
+    filename = StringField(max_length=300, required=True)
+    ai_summary = StringField()
+    uploaded_at = DateTimeField(default=datetime.utcnow)
+
+class Certification(Document):
+    student = ReferenceField(User, required=True)
+    title = StringField(max_length=200, required=True)
+    organization = StringField(max_length=200, required=True)
+    date_issued = DateTimeField()
+    filename = StringField(max_length=300, required=True)
+    uploaded_at = DateTimeField(default=datetime.utcnow)
+
+class UserGamification(Document):
+    student = ReferenceField(User, unique=True, required=True)
+    xp = IntField(default=0)
+    level = IntField(default=1)
+    badges = ListField(DictField())
+    study_streak = IntField(default=0)
+    attendance_streak = IntField(default=0)
+    coding_streak = IntField(default=0)
+    last_study_date = DateTimeField()
+    last_coding_date = DateTimeField()
+

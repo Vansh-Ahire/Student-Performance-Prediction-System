@@ -10,11 +10,13 @@ import {
   Zap,
   ChevronDown
 } from 'lucide-react';
+import Calendar from '../components/Calendar';
 
 export default function AttendanceTracker() {
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
   const [data, setData] = useState({ slots: [], day_name: '' });
   const [loading, setLoading] = useState(true);
+  const [showCalendar, setShowCalendar] = useState(false);
 
   useEffect(() => {
     fetchAttendance();
@@ -67,15 +69,24 @@ export default function AttendanceTracker() {
 
       {/* Date Control Card */}
       <div className="card py-4 px-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <CalendarIcon className="w-5 h-5 text-orange-400" />
-          <h3 className="font-bold text-white text-lg">{formattedDate}</h3>
-          <input 
-            type="date" 
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
-            className="bg-dark-900 border border-dark-600 rounded-lg p-1.5 px-3 text-xs text-dim focus:border-orange-500 transition-colors outline-none"
-          />
+        <div className="flex flex-col md:flex-row md:items-center gap-4 relative">
+          <div className="flex items-center gap-4 cursor-pointer" onClick={() => setShowCalendar(!showCalendar)}>
+            <CalendarIcon className="w-5 h-5 text-orange-400" />
+            <h3 className="font-bold text-white text-lg hover:text-orange-400 transition-colors">{formattedDate}</h3>
+            <ChevronDown className={`w-4 h-4 text-dim transition-transform ${showCalendar ? 'rotate-180' : ''}`} />
+          </div>
+          
+          {showCalendar && (
+            <div className="absolute top-full left-0 mt-4 z-50">
+               <Calendar 
+                 selectedDate={selectedDate} 
+                 onDateChange={(date) => {
+                    setSelectedDate(date);
+                    setShowCalendar(false);
+                 }} 
+               />
+            </div>
+          )}
         </div>
         
         <div className="flex items-center gap-3">
@@ -122,6 +133,11 @@ export default function AttendanceTracker() {
                         <span className="text-[10px] bg-dark-900 border border-dark-600 px-1.5 py-0.5 rounded text-dim">
                           {lec.type}
                         </span>
+                        {lec.section && (
+                          <span className="text-[10px] bg-orange-600/10 border border-orange-600/30 px-1.5 py-0.5 rounded text-orange-400 font-black">
+                            {lec.section}
+                          </span>
+                        )}
                       </h4>
                       <div className="flex items-center gap-2 mt-1.5">
                         <User className="w-3.5 h-3.5 text-dim" />

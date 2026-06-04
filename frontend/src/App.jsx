@@ -9,7 +9,17 @@ import CGPATarget      from './pages/CGPATarget';
 import CodingActivity  from './pages/CodingActivity';
 import EditProfile     from './pages/EditProfile';
 import Login           from './pages/Login';
+import Signup          from './pages/Signup';
 import Notifications   from './pages/Notifications';
+import AssessmentDesk  from './pages/AssessmentDesk';
+import SmartInsights   from './pages/SmartInsights';
+import StudyPlanner    from './pages/StudyPlanner';
+import WeakAreas       from './pages/WeakAreas';
+import NotesHub        from './pages/NotesHub';
+import Achievements    from './pages/Achievements';
+import Leaderboard     from './pages/Leaderboard';
+import CodingDeepDive  from './pages/CodingDeepDive';
+import Certifications  from './pages/Certifications';
 
 const AppSkeleton = () => (
   <div className="flex h-screen w-screen bg-dark-900 overflow-hidden">
@@ -53,16 +63,26 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
           <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
             <Route path="/"           element={<Dashboard />} />
             <Route path="/timer"      element={<StudyTimer />} />
             <Route path="/todo"       element={<TodoList />} />
             <Route path="/attendance" element={<AttendanceTracker />} />
-            <Route path="/performance" element={<CGPATarget />} /> {/* Alias for CGPA Target */}
+            <Route path="/performance" element={<CGPATarget />} />
             <Route path="/cgpa"       element={<CGPATarget />} />
             <Route path="/coding"     element={<CodingActivity />} />
             <Route path="/profile"    element={<EditProfile />} />
             <Route path="/notifications" element={<Notifications />} />
+            <Route path="/assess"       element={<AssessmentDesk />} />
+            <Route path="/insights"     element={<SmartInsights />} />
+            <Route path="/planner"      element={<StudyPlanner />} />
+            <Route path="/weak-areas"   element={<WeakAreas />} />
+            <Route path="/notes"        element={<NotesHub />} />
+            <Route path="/achievements" element={<Achievements />} />
+            <Route path="/leaderboard"  element={<Leaderboard />} />
+            <Route path="/coding-deep"  element={<CodingDeepDive />} />
+            <Route path="/certifications" element={<Certifications />} />
           </Route>
         </Routes>
       </BrowserRouter>

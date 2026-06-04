@@ -16,6 +16,7 @@ export default function Notifications() {
   const [activeFilter, setActiveFilter] = useState('all');
   const [loading, setLoading] = useState(true);
   const [notifications, setNotifications] = useState([]);
+  const [smartReminders, setSmartReminders] = useState([]);
 
   const iconMap = {
     danger: AlertCircle,
@@ -27,6 +28,7 @@ export default function Notifications() {
 
   useEffect(() => {
     fetchNotifications();
+    api.get('/smart-reminders').then(r => setSmartReminders(r.data)).catch(() => {});
   }, []);
 
   const fetchNotifications = async () => {
@@ -98,6 +100,24 @@ export default function Notifications() {
             </button>
         </div>
       </div>
+
+      {/* Smart Reminders Section */}
+      {smartReminders.length > 0 && (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 ml-1">
+            <Zap className="w-4 h-4 text-amber-400" />
+            <h3 className="text-xs font-black text-white uppercase tracking-[0.2em]">Smart Alerts</h3>
+            <span className="text-[9px] font-black bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full">Live</span>
+          </div>
+          {smartReminders.map((r, i) => (
+            <div key={i} className={`card p-4 border-l-4 ${r.type === 'danger' ? 'border-l-red-500 bg-red-500/5' : r.type === 'warning' ? 'border-l-amber-500 bg-amber-500/5' : 'border-l-cyan-500 bg-cyan-500/5'}`}>
+              <h4 className="text-sm font-black text-white">{r.title}</h4>
+              <p className="text-xs text-dim font-medium mt-1">{r.message}</p>
+            </div>
+          ))}
+          <div className="h-px bg-white/5 w-full my-2" />
+        </div>
+      )}
 
       {/* Notifications List */}
       <div className="space-y-4">

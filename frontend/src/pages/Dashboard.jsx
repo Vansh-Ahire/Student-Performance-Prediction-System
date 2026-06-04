@@ -70,16 +70,13 @@ export default function Dashboard() {
   );
 
   const stats = [
-    { label: 'Attendance', value: `${data?.overall_attendance.toFixed(1)}%` || '0%', change: '+2.5%', icon: Calendar, color: 'text-orange-400', bg: 'bg-orange-600/10', trend: 'up' },
-    { label: 'Tasks Pending', value: data?.pending_tasks_count || '0', change: '-4.0%', icon: CheckCircle2, color: 'text-orange-400', bg: 'bg-orange-600/10', trend: 'down' },
-    { label: 'Problems Solved', value: data?.total_solved || '0', change: '+15%', icon: Code2, color: 'text-emerald-400', bg: 'bg-emerald-600/10', trend: 'up' },
-    { label: 'Risk Level', value: data?.risk_profile.level || 'Unknown', change: 'Live', icon: ShieldCheck, color: data?.risk_profile.color === 'danger' ? 'text-red-400' : 'text-orange-400', bg: 'bg-orange-600/10', trend: 'up' },
+    { label: 'Attendance', value: data ? `${data.overall_attendance.toFixed(1)}%` : '0%', change: 'Current', icon: Calendar, color: 'text-orange-400', bg: 'bg-orange-600/10', trend: 'up' },
+    { label: 'Tasks Pending', value: data?.pending_tasks_count || '0', change: 'Current', icon: CheckCircle2, color: 'text-orange-400', bg: 'bg-orange-600/10', trend: 'down' },
+    { label: 'Problems Solved', value: data?.total_solved || '0', change: 'Current', icon: Code2, color: 'text-emerald-400', bg: 'bg-emerald-600/10', trend: 'up' },
+    { label: 'Risk Level', value: data?.risk_profile?.level || 'Unknown', change: 'Live', icon: ShieldCheck, color: data?.risk_profile?.color === 'danger' ? 'text-red-400' : 'text-orange-400', bg: 'bg-orange-600/10', trend: 'up' },
   ];
 
-  const activity = [
-    { id: 1, title: 'Attendance Record Updated', time: 'Just now', repo: 'portal', icon: GitPullRequest, color: 'text-orange-400', bg: 'bg-orange-400/10' },
-    { id: 2, title: 'Database Sync Successful', time: '5 mins ago', env: 'Cloud', icon: Rocket, color: 'text-emerald-400', bg: 'bg-emerald-400/10' },
-  ];
+  const activity = [];
 
   return (
     <div className="space-y-8 animate-slide-up pb-10">
@@ -141,6 +138,11 @@ export default function Dashboard() {
                <span key={day} className="text-[10px] font-black text-dim tracking-widest">{day}</span>
              ))}
           </div>
+          {data?.attendance_summary && data.attendance_summary.length === 0 && (
+            <div className="absolute inset-0 flex items-center justify-center bg-dark-800/80 backdrop-blur-sm z-10 rounded-2xl">
+              <p className="text-dim font-medium text-sm">No attendance data available yet.</p>
+            </div>
+          )}
         </div>
 
         {/* Platform Distribution - Donut Chart */}
@@ -160,7 +162,7 @@ export default function Dashboard() {
                       strokeDasharray="502.4" strokeDashoffset="400" strokeLinecap="round" />
                  </svg>
                  <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <p className="text-3xl font-black text-white leading-none">148</p>
+                    <p className="text-3xl font-black text-white leading-none">{data?.total_solved || 0}</p>
                     <p className="text-[10px] uppercase font-bold text-dim tracking-tight mt-1">Problems</p>
                  </div>
               </div>
@@ -193,7 +195,7 @@ export default function Dashboard() {
            </div>
            
            <div className="space-y-6">
-              {activity.map((item) => (
+              {activity.length > 0 ? activity.map((item) => (
                 <div key={item.id} className="flex items-start gap-4 group cursor-pointer">
                    <div className={`w-12 h-12 rounded-2xl ${item.bg} ${item.color} flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform`}>
                       <item.icon className="w-5 h-5" />
@@ -208,7 +210,11 @@ export default function Dashboard() {
                       </p>
                    </div>
                 </div>
-              ))}
+              )) : (
+                <div className="text-center py-10">
+                  <p className="text-dim text-sm">No recent activity found.</p>
+                </div>
+              )}
            </div>
         </div>
 

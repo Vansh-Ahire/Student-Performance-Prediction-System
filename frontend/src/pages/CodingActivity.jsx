@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import api from '../api';
 import { 
   CheckCircle2, 
   Target, 
@@ -11,17 +12,70 @@ import {
   BarChart3,
   Award,
   Star,
-  Activity
+  Activity,
+  RefreshCw,
+  ExternalLink,
+  BookOpen
 } from 'lucide-react';
 
 export default function CodingActivity() {
   const [activeTab, setActiveTab] = useState('monthly');
   const [hoveredData, setHoveredData] = useState(null);
+  const [stats, setStats] = useState([]);
+  const [recommendations, setRecommendations] = useState([]);
+  const [tracks, setTracks] = useState([]);
+  const [selectedSubject, setSelectedSubject] = useState('ALL');
+  const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const fetchData = async () => {
+    try {
+      const [statsRes, recsRes, tracksRes] = await Promise.all([
+        api.get('/coding/stats'),
+        api.get('/coding/recommendations'),
+        api.get('/coding/tracks')
+      ]);
+      setStats(statsRes.data);
+      setRecommendations(recsRes.data);
+      setTracks(tracksRes.data);
+    } catch (err) {
+      console.error("Error fetching coding data:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateTrackProgress = async (id, newProgress) => {
+    try {
+      await api.post('/coding/tracks', { id, progress: newProgress });
+      setTracks(tracks.map(t => t.id === id ? { ...t, progress: newProgress } : t));
+    } catch (err) {
+      console.error("Error updating track:", err);
+    }
+  };
+
+  const syncStats = async () => {
+    setSyncing(true);
+    try {
+      await api.post('/coding/sync');
+      await fetchData();
+    } catch (err) {
+      console.error("Error syncing stats:", err);
+    } finally {
+      setSyncing(false);
+    }
+  };
+
+  const totalSolved = stats.reduce((sum, s) => sum + s.problems_solved, 0);
 
   const topStats = [
-    { label: 'Total Solved', value: '1,248', change: '+12% growth', icon: CheckCircle2, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
-    { label: 'Monthly Target', value: '85.4%', change: '+5.2% accuracy', icon: Target, color: 'text-orange-400', bg: 'bg-orange-500/10' },
-    { label: 'Global Rank', value: '#2,415', change: 'Top 5%', icon: Trophy, color: 'text-amber-400', bg: 'bg-amber-500/10' },
+    { label: 'Total Solved', value: totalSolved.toString(), change: 'Current', icon: CheckCircle2, color: 'text-emerald-400', bg: 'bg-emerald-500/10' },
+    { label: 'Monthly Target', value: totalSolved > 0 ? 'On Track' : '0%', change: 'Current', icon: Target, color: 'text-orange-400', bg: 'bg-orange-500/10' },
+    { label: 'Global Rank', value: totalSolved > 0 ? 'Active' : 'N/A', change: 'Current', icon: Trophy, color: 'text-amber-400', bg: 'bg-amber-500/10' },
   ];
 
   const platforms = [
@@ -31,34 +85,44 @@ export default function CodingActivity() {
   ];
 
   const difficultyStats = [
-    { label: 'EASY', value: '642', trend: '↑ 14%', color: 'text-emerald-400' },
-    { label: 'MEDIUM', value: '412', trend: '↑ 8%', color: 'text-orange-400' },
-    { label: 'HARD', value: '194', trend: '→ 0%', color: 'text-rose-400' },
-    { label: 'POINTS', value: '42.5k', unit: 'XP', color: 'text-amber-400' },
+    { label: 'EASY', value: '0', trend: '-', color: 'text-emerald-400' },
+    { label: 'MEDIUM', value: '0', trend: '-', color: 'text-orange-400' },
+    { label: 'HARD', value: '0', trend: '-', color: 'text-rose-400' },
+    { label: 'POINTS', value: '0', unit: 'XP', color: 'text-amber-400' },
   ];
 
-  // Mock data for stacked bar chart: Jan to Dec
+  // Placeholder empty data for chart if no backend history exists yet
   const chartData = [
-    { month: 'JAN', leet: 40, hacker: 30, chef: 20 },
-    { month: 'FEB', leet: 55, hacker: 25, chef: 35 },
-    { month: 'MAR', leet: 45, hacker: 20, chef: 15 },
-    { month: 'APR', leet: 70, hacker: 40, chef: 30 },
-    { month: 'MAY', leet: 60, hacker: 35, chef: 25 },
-    { month: 'JUN', leet: 40, hacker: 30, chef: 20 },
-    { month: 'JUL', leet: 85, hacker: 45, chef: 35 },
-    { month: 'AUG', leet: 50, hacker: 30, chef: 25 },
-    { month: 'SEP', leet: 30, hacker: 20, chef: 15 },
-    { month: 'OCT', leet: 65, hacker: 40, chef: 30 },
-    { month: 'NOV', leet: 55, hacker: 30, chef: 25 },
-    { month: 'DEC', leet: 75, hacker: 45, chef: 40 },
+    { month: 'JAN', leet: 0, hacker: 0, chef: 0 },
+    { month: 'FEB', leet: 0, hacker: 0, chef: 0 },
+    { month: 'MAR', leet: 0, hacker: 0, chef: 0 },
+    { month: 'APR', leet: 0, hacker: 0, chef: 0 },
+    { month: 'MAY', leet: 0, hacker: 0, chef: 0 },
+    { month: 'JUN', leet: 0, hacker: 0, chef: 0 },
+    { month: 'JUL', leet: 0, hacker: 0, chef: 0 },
+    { month: 'AUG', leet: 0, hacker: 0, chef: 0 },
+    { month: 'SEP', leet: 0, hacker: 0, chef: 0 },
+    { month: 'OCT', leet: 0, hacker: 0, chef: 0 },
+    { month: 'NOV', leet: 0, hacker: 0, chef: 0 },
+    { month: 'DEC', leet: 0, hacker: 0, chef: 0 },
   ];
 
   return (
     <div className="space-y-8 animate-slide-up pb-10">
       {/* Header Section */}
-      <div className="space-y-2">
-        <h1 className="text-4xl font-black text-white tracking-tight uppercase">Coding Stats</h1>
-        <p className="text-dim font-medium italic">Real-time performance metrics across competitive platforms</p>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="space-y-2">
+          <h1 className="text-4xl font-black text-white tracking-tight uppercase">Coding Stats</h1>
+          <p className="text-dim font-medium italic">Real-time performance metrics across competitive platforms</p>
+        </div>
+        <button 
+          onClick={syncStats}
+          disabled={syncing}
+          className="flex items-center gap-2 px-6 py-3 bg-orange-600 hover:bg-orange-700 disabled:bg-orange-800 text-white rounded-xl font-black text-[10px] uppercase tracking-widest transition-all shadow-lg shadow-orange-600/20"
+        >
+          <RefreshCw className={`w-4 h-4 ${syncing ? 'animate-spin' : ''}`} />
+          {syncing ? 'Syncing...' : 'Sync Accounts'}
+        </button>
       </div>
 
       {/* Top 3 Cards */}
@@ -188,6 +252,12 @@ export default function CodingActivity() {
                 </span>
               ))}
             </div>
+
+            {totalSolved === 0 && (
+              <div className="absolute inset-0 flex items-center justify-center bg-dark-800/80 backdrop-blur-sm z-10 rounded-2xl">
+                <p className="text-dim font-medium text-sm">No historical data available yet. Start solving problems!</p>
+              </div>
+            )}
           </div>
           
           <div className="mt-10 pt-6 border-t border-white/5 flex flex-wrap gap-6 justify-center">
@@ -204,56 +274,189 @@ export default function CodingActivity() {
           </div>
         </div>
 
-        {/* Platform Sidebar Column */}
         <div className="lg:col-span-2 space-y-4">
-           {platforms.map((p) => (
-             <div key={p.name} className="card p-5 border-orange-500/5 hover:border-orange-500/20 group transition-all duration-300">
-                <div className="flex items-center justify-between mb-5">
-                   <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-xl bg-dark-900 border border-dark-700 flex items-center justify-center ${p.text} group-hover:scale-110 transition-transform`}>
-                         <p.icon className="w-5 h-5" />
-                      </div>
-                      <div>
-                         <h4 className="font-black text-white text-sm">{p.name}</h4>
-                         <p className="text-[10px] font-bold text-dim uppercase tracking-tight">{p.rank}</p>
-                      </div>
-                   </div>
-                   <span className="text-[10px] font-bold text-dim uppercase opacity-50">{p.rank}</span>
-                </div>
-                
-                <div className="space-y-2">
-                   <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest mb-1">
-                      <span className="text-dim opacity-70">{p.solved} / {p.total} SOLVED</span>
-                      <span className={p.text}>{Math.round((p.solved/p.total)*100)}%</span>
-                   </div>
-                   <div className="h-1.5 w-full bg-dark-900 rounded-full overflow-hidden border border-white/5">
-                      <div 
-                        className={`h-full ${p.color} rounded-full transition-all duration-1000 ease-out shadow-glow`}
-                        style={{ width: `${(p.solved/p.total)*100}%` }}
-                      />
-                   </div>
-                </div>
-             </div>
-           ))}
+           {platforms.map((p) => {
+             const realStat = stats.find(s => s.platform.toLowerCase() === p.name.toLowerCase());
+             const solvedCount = realStat ? realStat.problems_solved : 0;
+             const percentage = Math.min(Math.round((solvedCount / p.total) * 100), 100);
+             
+             return (
+               <div key={p.name} className="card p-5 border-orange-500/5 hover:border-orange-500/20 group transition-all duration-300">
+                  <div className="flex items-center justify-between mb-5">
+                     <div className="flex items-center gap-3">
+                        <div className={`w-10 h-10 rounded-xl bg-dark-900 border border-dark-700 flex items-center justify-center ${p.text} group-hover:scale-110 transition-transform`}>
+                           <p.icon className="w-5 h-5" />
+                        </div>
+                        <div>
+                           <h4 className="font-black text-white text-sm">{p.name}</h4>
+                           <p className="text-[10px] font-bold text-dim uppercase tracking-tight">{realStat ? `${realStat.rating} Rating` : p.rank}</p>
+                        </div>
+                     </div>
+                     <span className="text-[10px] font-bold text-dim uppercase opacity-50">{realStat ? 'Connected' : 'Not Connected'}</span>
+                  </div>
+                  
+                  <div className="space-y-2">
+                     <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest mb-1">
+                        <span className="text-dim opacity-70">{solvedCount} / {p.total} SOLVED</span>
+                        <span className={p.text}>{percentage}%</span>
+                     </div>
+                     <div className="h-1.5 w-full bg-dark-900 rounded-full overflow-hidden border border-white/5">
+                        <div 
+                          className={`h-full ${p.color} rounded-full transition-all duration-1000 ease-out shadow-glow`}
+                          style={{ width: `${percentage}%` }}
+                        />
+                     </div>
+                  </div>
+               </div>
+             );
+           })}
         </div>
       </div>
 
-      {/* Bottom Difficulty Row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-        {difficultyStats.map((stat, i) => (
-          <div key={i} className="card p-6 border-orange-500/5 group hover:border-orange-500/20">
-            <p className="text-[10px] font-black text-dim uppercase tracking-[0.2em] mb-4">{stat.label}</p>
-            <div className="flex items-end gap-3 translate-y-2">
-               <h3 className="text-3xl font-black text-white leading-none">{stat.value}</h3>
-               {stat.unit && <span className="text-sm font-black text-dim mb-1">{stat.unit}</span>}
-               {stat.trend && (
-                 <span className={`text-[10px] font-black ${stat.trend.includes('↑') ? 'text-emerald-400' : 'text-dim'} ml-1 mb-1.5`}>
-                   {stat.trend}
-                 </span>
-               )}
+      {/* Assigned Tracks Section */}
+      <div className="space-y-6 pt-4 border-t border-white/5">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-1.5 h-6 bg-purple-500 rounded-full shadow-[0_0_15px_rgba(168,85,247,0.5)]" />
+          <h3 className="text-xl font-black text-white tracking-tight uppercase">Assigned Learning Tracks</h3>
+        </div>
+        
+        <div className="grid grid-cols-1 gap-4">
+          {tracks.map((track) => (
+            <div key={track.id} className="card p-5 border-purple-500/5 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400">
+                  <Award className="w-6 h-6" />
+                </div>
+                <div>
+                  <h4 className="font-black text-white text-base">{track.name}</h4>
+                  <a href={track.url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 mt-1 text-dim hover:text-white transition-colors">
+                    <span className="text-[10px] font-bold uppercase tracking-tight">{track.platform}</span>
+                    <ExternalLink className="w-3 h-3" />
+                  </a>
+                </div>
+              </div>
+              
+              <div className="w-full md:w-1/3 space-y-3">
+                <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest">
+                  <span className="text-dim opacity-70">Completion Progress</span>
+                  <span className="text-purple-400">{track.progress}%</span>
+                </div>
+                <input 
+                  type="range" 
+                  min="0" 
+                  max="100" 
+                  value={track.progress} 
+                  onChange={(e) => updateTrackProgress(track.id, e.target.value)}
+                  className="w-full h-2 bg-dark-900 rounded-lg appearance-none cursor-pointer accent-purple-500"
+                />
+              </div>
             </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Syllabus Recommendations Section */}
+      <div className="space-y-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+          <div className="flex items-center gap-3">
+            <div className="w-1.5 h-6 bg-emerald-500 rounded-full shadow-[0_0_15px_rgba(16,185,129,0.5)]" />
+            <h3 className="text-xl font-black text-white tracking-tight uppercase">Syllabus-Targeted Practice</h3>
           </div>
-        ))}
+
+          <div className="flex p-1 bg-dark-900 border border-dark-700/50 rounded-2xl overflow-x-auto no-scrollbar">
+            {['ALL', 'AI', 'DBMS', 'DAA', 'PL'].map((sub) => (
+              <button 
+                key={sub}
+                onClick={() => setSelectedSubject(sub)}
+                className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap ${selectedSubject === sub ? 'bg-emerald-600 text-white shadow-lg' : 'text-dim hover:text-white'}`}
+              >
+                {sub === 'PL' ? 'Prog. Lang' : sub}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {recommendations
+            .filter(rec => rec.subject !== 'Placement' && (selectedSubject === 'ALL' || rec.subject === selectedSubject))
+            .map((rec) => (
+            <a 
+              key={rec.id} 
+              href={rec.problem_url} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="card p-5 border-emerald-500/5 hover:border-emerald-500/20 group transition-all duration-300 flex items-center justify-between"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
+                  <BookOpen className="w-6 h-6" />
+                </div>
+                <div>
+                  <h4 className="font-black text-white text-sm group-hover:text-emerald-400 transition-colors">{rec.problem_name}</h4>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-[10px] font-bold text-dim uppercase tracking-tight">{rec.subject}</span>
+                    <span className="text-white/10 text-[10px]">•</span>
+                    <span className="text-[10px] font-bold text-emerald-500/80 uppercase tracking-tight">{rec.topic}</span>
+                  </div>
+                </div>
+              </div>
+              <div className="flex flex-col items-end gap-2">
+                <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest ${
+                  rec.difficulty === 'Easy' ? 'bg-emerald-500/10 text-emerald-400' : 
+                  rec.difficulty === 'Medium' ? 'bg-orange-500/10 text-orange-400' : 'bg-rose-500/10 text-rose-400'
+                }`}>
+                  {rec.difficulty}
+                </span>
+                <ExternalLink className="w-4 h-4 text-dim group-hover:text-white transition-colors" />
+              </div>
+            </a>
+          ))}
+        </div>
+      </div>
+
+      {/* Placement Ready Section */}
+      <div className="space-y-6 pt-6 mt-6 border-t border-white/5">
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-1.5 h-6 bg-blue-500 rounded-full shadow-[0_0_15px_rgba(59,130,246,0.5)]" />
+          <h3 className="text-xl font-black text-white tracking-tight uppercase">Placement Ready Questions</h3>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {recommendations
+            .filter(rec => rec.subject === 'Placement')
+            .map((rec) => (
+            <a 
+              key={rec.id} 
+              href={rec.problem_url} 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="card p-5 border-blue-500/5 hover:border-blue-500/20 group transition-all duration-300 flex items-center justify-between"
+            >
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 group-hover:scale-110 transition-transform">
+                  <Terminal className="w-6 h-6" />
+                </div>
+                <div>
+                  <h4 className="font-black text-white text-sm group-hover:text-blue-400 transition-colors">{rec.problem_name}</h4>
+                  <div className="flex items-center gap-2 mt-1">
+                    <span className="text-[10px] font-bold text-dim uppercase tracking-tight">{rec.platform}</span>
+                    <span className="text-white/10 text-[10px]">•</span>
+                    <span className="text-[10px] font-bold text-blue-500/80 uppercase tracking-tight">{rec.topic}</span>
+                  </div>
+                </div>
+              </div>
+              <div className="flex flex-col items-end gap-2">
+                <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest ${
+                  rec.difficulty === 'Easy' ? 'bg-emerald-500/10 text-emerald-400' : 
+                  rec.difficulty === 'Medium' ? 'bg-orange-500/10 text-orange-400' : 'bg-rose-500/10 text-rose-400'
+                }`}>
+                  {rec.difficulty}
+                </span>
+                <ExternalLink className="w-4 h-4 text-dim group-hover:text-white transition-colors" />
+              </div>
+            </a>
+          ))}
+        </div>
       </div>
     </div>
   );

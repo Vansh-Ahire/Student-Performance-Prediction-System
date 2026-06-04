@@ -213,6 +213,21 @@ export default function EditProfile() {
                  </select>
               </div>
               <div className="space-y-2">
+                 <label className="text-[10px] uppercase font-black tracking-widest text-dim px-1">Batch / Section</label>
+                 <select 
+                    name="section"
+                    value={profile.section}
+                    onChange={handleChange}
+                    disabled={!editing}
+                    className="input-field appearance-none cursor-pointer"
+                 >
+                    <option value="">None</option>
+                    <option value="S1">S1</option>
+                    <option value="S2">S2</option>
+                    <option value="S3">S3</option>
+                 </select>
+              </div>
+              <div className="space-y-2">
                  <label className="text-[10px] uppercase font-black tracking-widest text-dim px-1">CGPA Target</label>
                  <div className="relative">
                     <Target className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-amber-500" />
