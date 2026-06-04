@@ -110,7 +110,7 @@ export default function Certifications() {
                   </div>
                 </div>
                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <a href={`http://localhost:5000/static/certifications/${cert.filename}`} target="_blank" rel="noopener noreferrer" download title="Download"
+                  <a href={`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/static/certifications/${cert.filename}`} target="_blank" rel="noopener noreferrer" download title="Download"
                     className="p-1.5 rounded-lg bg-blue-500/10 text-blue-400 hover:scale-110 transition-all flex items-center justify-center">
                     <Download className="w-3.5 h-3.5" />
                   </a>
